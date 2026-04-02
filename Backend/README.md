@@ -78,3 +78,90 @@ Notes:
 
 This is returned when any `express-validator` check fails.
 
+---
+
+## `POST /api/users/login`
+
+Authenticate a user and return a JWT auth token.
+
+### Request
+
+- Method: `POST`
+- Path: `/api/users/login`
+- Headers:
+  - `Content-Type: application/json`
+- Body (JSON):
+
+```json
+{
+  "email": "string",
+  "password": "string"
+}
+```
+
+### Required Fields & Validation
+
+The endpoint uses `express-validator` rules from the route:
+
+- `email`
+  - Required (must be present)
+  - Must be a valid email address
+- `password`
+  - Required (must be present)
+  - Minimum length: `8` characters
+
+### Success Response
+
+- Status code: `200 OK`
+- Response body:
+
+```json
+{
+  "token": "string (JWT)",
+  "user": { }
+}
+```
+
+Notes:
+
+- `token` is generated via JWT using `process.env.JWT_SECRET` and includes the authenticated user's `_id`.
+- The returned `user` document does not include the `password` field (the model defines `password` with `select: false`).
+- Authentication is successful when both email exists in the database and password matches the stored hash.
+
+### Error Responses
+
+#### Validation Error
+
+- Status code: `400 Bad Request`
+- Response body:
+
+```json
+{
+  "errors": [
+    {
+      "param": "string",
+      "msg": "string",
+      "value": "any",
+      "location": "string"
+    }
+  ]
+}
+```
+
+This is returned when any `express-validator` check fails (invalid email format or password too short).
+
+#### Authentication Error
+
+- Status code: `401 Unauthorized`
+- Response body:
+
+```json
+{
+  "message": "Invalid email or password"
+}
+```
+
+This is returned when:
+- Email does not exist in the database
+- Password does not match the stored hash for the provided email
+
