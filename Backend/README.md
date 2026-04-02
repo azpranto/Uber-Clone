@@ -165,3 +165,111 @@ This is returned when:
 - Email does not exist in the database
 - Password does not match the stored hash for the provided email
 
+---
+
+## `GET /api/users/profile`
+
+Get the authenticated user's profile information.
+
+### Request
+
+- Method: `GET`
+- Path: `/api/users/profile`
+- Headers:
+  - `Authorization: Bearer <token>` OR
+  - Cookie: `token=<token>`
+- Authentication: Required (uses `authMiddleware`)
+
+### Success Response
+
+- Status code: `200 OK`
+- Response body:
+
+```json
+{
+  "_id": "string",
+  "fullname": {
+    "firstname": "string",
+    "lastname": "string"
+  },
+  "email": "string",
+  "createdAt": "string",
+  "updatedAt": "string"
+}
+```
+
+Notes:
+
+- The user data is retrieved from the `req.user` object set by the authentication middleware.
+- The response does not include the `password` field (model defines `password` with `select: false`).
+- Token can be provided either as a Bearer token in Authorization header or as an HTTP-only cookie.
+
+### Error Responses
+
+#### Unauthorized Error
+
+- Status code: `401 Unauthorized`
+- Response body:
+
+```json
+{
+  "message": "Unauthorized"
+}
+```
+
+This is returned when:
+- No token is provided (missing from both cookie and Authorization header)
+- Token is invalid or expired
+- Token is blacklisted (previously used for logout)
+
+---
+
+## `GET /api/users/logout`
+
+Logout the authenticated user and invalidate their token.
+
+### Request
+
+- Method: `GET`
+- Path: `/api/users/logout`
+- Headers:
+  - `Authorization: Bearer <token>` OR
+  - Cookie: `token=<token>`
+- Authentication: Required (uses `authMiddleware`)
+
+### Success Response
+
+- Status code: `200 OK`
+- Response body:
+
+```json
+{
+  "message": "Logged out successfully"
+}
+```
+
+Notes:
+
+- The token is cleared from the HTTP-only cookie.
+- The token is added to the blacklist collection to prevent future use.
+- Blacklisted tokens automatically expire after 24 hours (configured in the blacklistToken model).
+- Both cookie and Authorization header tokens are invalidated.
+
+### Error Responses
+
+#### Unauthorized Error
+
+- Status code: `401 Unauthorized`
+- Response body:
+
+```json
+{
+  "message": "Unauthorized"
+}
+```
+
+This is returned when:
+- No token is provided (missing from both cookie and Authorization header)
+- Token is invalid or expired
+- Token is already blacklisted
+
