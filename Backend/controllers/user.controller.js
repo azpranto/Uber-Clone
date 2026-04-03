@@ -10,6 +10,12 @@ module.exports.register = async (req, res, next) => {
     }
 
     const { fullname, email, password } = req.body;
+
+    const isUserExists = await userModel.findOne({ email });
+
+    if (isUserExists) {
+        return res.status(400).json({ message: "User already exists" });
+    }
     
     const hashedPassword = await userModel.hashPassword(password); //used statics for global access, no need to import bcrypt
 
