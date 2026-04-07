@@ -1,25 +1,51 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { UserDataContext } from "../context/UsrContext";
+import { toast } from "react-hot-toast";
 
 const UserSignupPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  
+
   const [userData, setUserData] = useState({});
+  const navigate = useNavigate();
 
-  const submitHandler = (e) => {
+  const { user, setUser } = useContext(UserDataContext);
+
+  const submitHandler = async (e) => {
     e.preventDefault();
-
-    setUserData({
+    const newUser = {
       fullname: {
-        firstName: firstName,
-        lastName: lastName,
+        firstname: firstName,
+        lastname: lastName,
       },
       email: email,
       password: password,
-    });
+    };
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/api/users/register`,
+        newUser,
+      );
+
+      if (response.status === 201) {
+        const data = response.data;
+
+        setUser(data.user);
+        localStorage.setItem("token", data.token);
+
+        navigate("/main");
+      }
+    } catch (error) {
+      navigate("/login");
+      toast.error(error.response.data.message || "Something went wrong");
+    }
+
+    console.log(response.data);
 
     setFirstName("");
     setLastName("");
@@ -76,10 +102,10 @@ const UserSignupPage = () => {
             placeholder="Password"
           />
           <button
-            className="bg-[#111111] text-white rounded-lg px-4 py-2 w-full mt-4"
+            className="bg-[#111111] text-white font-medium text-base rounded-lg px-4 py-2 w-full mt-4"
             type="submit"
           >
-            Sign Up
+            Create Account
           </button>
 
           <p className="mt-4 text-center">
@@ -93,7 +119,9 @@ const UserSignupPage = () => {
 
       <div>
         <p className="text-[12px] text-gray-500 text-center leading-tight">
-          By proceeding, you agree to get calls, WhatsApp messages, and SMS from Uber, including by automated means, from Uber and its affiliates to the phone number provided.
+          By proceeding, you agree to get calls, WhatsApp messages, and SMS from
+          Uber, including by automated means, from Uber and its affiliates to
+          the phone number provided.
         </p>
       </div>
     </div>

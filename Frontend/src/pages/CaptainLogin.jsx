@@ -1,18 +1,38 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const CaptainLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [captainData, setCaptainData] = useState({});
+  const navigate = useNavigate();
 
-  const submitHandler = (e) => {
+  const submitHandler = async (e) => {
     e.preventDefault();
 
-    setCaptainData({
+    const captainData = {
       email: email,
       password: password,
-    });
+    };
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/api/captains/login`,
+        captainData,
+      );
+
+      if (response.status === 200) {
+        const data = response.data;
+
+        localStorage.setItem("captainToken", data.token);
+        navigate("/captain-main");
+      }
+    } catch (error) {
+      toast.error(error.response.data.message || "Something went wrong");
+    }
 
     setEmail("");
     setPassword("");
